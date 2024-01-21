@@ -1,0 +1,7 @@
+FROM ubuntu:latest
+
+RUN apt-get update && apt-get install -qq -y wget iputils-ping fping mysql-client iproute2 jq ngrep nmap python3 net-tools tcpdump iperf telnet openssh-client git openssl curl ca-certificates sudo apache2-utils coreutils  && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+CMD ["/bin/bash"]
