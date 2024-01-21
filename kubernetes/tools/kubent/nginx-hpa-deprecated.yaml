@@ -1,0 +1,107 @@
+# Source: nginx-hpa-deprecated/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-deprecated-kubent-nginx-hpa-deprecated
+  labels:
+    helm.sh/chart: nginx-hpa-deprecated-0.1.0
+    app.kubernetes.io/name: nginx-hpa-deprecated
+    app.kubernetes.io/instance: nginx-deprecated-kubent
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: nginx-hpa-deprecated
+    app.kubernetes.io/instance: nginx-deprecated-kubent
+---
+# Source: nginx-hpa-deprecated/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deprecated-kubent-nginx-hpa-deprecated
+  labels:
+    helm.sh/chart: nginx-hpa-deprecated-0.1.0
+    app.kubernetes.io/name: nginx-hpa-deprecated
+    app.kubernetes.io/instance: nginx-deprecated-kubent
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nginx-hpa-deprecated
+      app.kubernetes.io/instance: nginx-deprecated-kubent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nginx-hpa-deprecated
+        app.kubernetes.io/instance: nginx-deprecated-kubent
+    spec:
+      containers:
+        - name: nginx-hpa-deprecated
+          image: "nginx:1.16.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {}
+---
+# Source: nginx-hpa-deprecated/templates/hpa.yaml
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nginx-deprecated-kubent-nginx-hpa-deprecated
+  labels:
+    helm.sh/chart: nginx-hpa-deprecated-0.1.0
+    app.kubernetes.io/name: nginx-hpa-deprecated
+    app.kubernetes.io/instance: nginx-deprecated-kubent
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginx-deprecated-kubent-nginx-hpa-deprecated
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: 10
+---
+# Source: nginx-hpa-deprecated/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "nginx-deprecated-kubent-nginx-hpa-deprecated-test-connection"
+  labels:
+    helm.sh/chart: nginx-hpa-deprecated-0.1.0
+    app.kubernetes.io/name: nginx-hpa-deprecated
+    app.kubernetes.io/instance: nginx-deprecated-kubent
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['nginx-deprecated-kubent-nginx-hpa-deprecated:80']
+  restartPolicy: Never
